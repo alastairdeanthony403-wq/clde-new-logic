@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Trading Dashboard</title>
+    <style>
+#popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: black;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+</style>
+</head>
+<body>
+
+<h1>AI Trading Dashboard</h1>
+
+<label>Symbols (comma separated):</label><br>
+<input id="symbols" value="AAPL,TSLA,MSFT,AMZN"><br><br>
+
+<label>Risk/Reward:</label><br>
+<input id="rr" value="2"><br><br>
+
+<button onclick="saveConfig()">Save Settings</button>
+
+<h2>Signal</h2>
+<pre id="output">Loading...</pre>
+
+<script>
+const API = "/signal";
+
+function loadSignals() {
+    fetch(API)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("output").textContent =
+            JSON.stringify(data, null, 2);
+    })
+    .catch(err => {
+        document.getElementById("output").textContent = "Error loading data";
+    });
+}
+
+function saveConfig() {
+    const symbols = document.getElementById("symbols").value.split(",");
+    const rr = document.getElementById("rr").value;
+
+    fetch("/symbols", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({symbols: symbols})
+    });
+
+    loadSignals();
+}
+let lastAlert = null;
+
+function showPopup(text) {
+    const popup = document.getElementById("popup");
+    popup.innerText = text;
+    popup.style.display = "block";
+
+    setTimeout(() => {
+        popup.style.display = "none";
+    }, 5000);
+}
+// refresh every 10 seconds
+setInterval(loadSignals, 10000);
+
+// first load
+loadSignals();
+</script>
+<div id="popup"></div>
+</body>
+</html>
